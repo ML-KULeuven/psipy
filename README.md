@@ -5,7 +5,7 @@ The `psipy` python package wraps around the [PSI-Solver](http://psisolver.org/) 
 1. Install the [pyd package](https://github.com/ariovistus/pyd). Clone the repo, cd into it and type `python setup.py install`
 2. Install the dmd comiler from here: [DMD compiler](https://dlang.org/download.html#dmd)
 
-### Installation ###
+### Installation (tested on Ubuntu 16.04) ###
 
 
 1. Clone now the psipy repo to your designated directory (first command from below)
