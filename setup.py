@@ -2,6 +2,7 @@ from __future__ import print_function
 
 import os
 import sys
+import glob
 
 from pyd.support import setup, Extension
 import distutils
@@ -37,10 +38,13 @@ def build_psipy(force=False):
 
     lib_dir = os.path.abspath(os.path.join(root_path, 'psipy', system))
 
+
     lib_build_dir = get_lib_build_dir()
-    filename = os.path.join(lib_build_dir, 'psipy.so')
-    if force and os.path.exists(filename):
-        os.remove(filename)
+
+    filelist=glob.glob("{lib_build_dir}/*.so".format(lib_build_dir=lib_build_dir))
+    if force and os.path.isdir(lib_build_dir):
+        for f in filelist:
+            os.remove(f)
 
     psipy_module = Extension(
         'psipy',
@@ -52,20 +56,26 @@ def build_psipy(force=False):
         libraries=['psi'],
     )
 
-    setup(
-        name='psipy',
-        version='0.1',
-        author='Pedro Zuidberg Dos Martires',
-        ext_modules = [psipy_module],
-        description='python wrapper for PSI',
-        script_args=['build', "--compiler=dmd", "--build-lib={}".format(lib_build_dir)],
-        packages=['psipy']
-    )
+    filelist=glob.glob("{lib_build_dir}/*.so".format(lib_build_dir=lib_build_dir))
+    if not filelist:
+        setup(
+            name='psipy',
+            version='0.1',
+            author='Pedro Zuidberg Dos Martires',
+            ext_modules = [psipy_module],
+            description='python wrapper for PSI',
+            script_args=['build', "--compiler=dmd", "--build-lib={}".format(lib_build_dir)],
+            packages=['psipy']
+        )
 
 
 
 if __name__ == '__main__':
-    build_psipy(force=True)
+    args = sys.argv
+    force = False
+    if "--force" in args:
+        force=True
+    build_psipy(force=force)
     print("\n")
     print("psipy library is now available")
     print("\n")
