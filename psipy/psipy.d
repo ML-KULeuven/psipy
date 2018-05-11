@@ -37,6 +37,18 @@ auto simplify(dexpr.DExpr a){
 
 
 
+auto linearizeConstraints(string[] variables, dexpr.DExpr expression){
+	expression = expression.simplify(one);
+	foreach (i; 0 ..variables.length){
+		expression = dexpr.linearizeConstraints(expression, variables[i].dVar);
+	}
+	return expression;
+}
+
+
+
+
+
 auto less(dexpr.DExpr lhs, dexpr.DExpr rhs){
 	return dexpr.dIvr(DIvr.Type.lZ, lhs-rhs);
 }
@@ -131,6 +143,8 @@ extern(C) void PydMain() {
     def!(toSympyString)();
     def!(simplify)();
 		def!(toText)();
+
+		def!(linearizeConstraints)();
 
 		def!(less)();
 		def!(less_equal)();
