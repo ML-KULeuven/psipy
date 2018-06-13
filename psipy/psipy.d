@@ -125,6 +125,12 @@ auto poisson_pdf(string var, dexpr.DExpr n){
 	return (poissonPDF(v, n)).simplify(one);
 }
 
+
+auto is_zero(dexpr.DExpr expr){
+	return text(expr)=="0";
+}
+
+
 auto integrate(string[] variables, dexpr.DExpr integrand){
 	auto integral = integrand.simplify(one);
 	foreach (i; 0 ..variables.length){
@@ -167,6 +173,9 @@ extern(C) void PydMain() {
 		def!(normal_pdf)();
 		def!(beta_pdf)();
 		def!(poisson_pdf)();
+
+		def!(is_zero)();
+
 
 		def!(integrate)();
 

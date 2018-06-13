@@ -15,7 +15,7 @@ git clone --recursive https://<username>@bitbucket.org/pedrozudo/psipy.git
 2. Built the PSI-Solver:
 ```
 cd psipy
-python pypsi/build_psi.py
+python psipy/build_psi.py
 ```
 3. Build the python library for the PSI-Solver:
 ```
