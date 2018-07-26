@@ -10,7 +10,7 @@ The `psipy` python package wraps around the [PSI-Solver](http://psisolver.org/) 
 
 1. Clone now the psipy repo to your designated directory (first command from below)
 ```
-git clone --recursive https://<username>@bitbucket.org/pedrozudo/psipy.git
+git clone --recursive https://github.com/ML-KULeuven/psipy.git
 ```
 2. Built the PSI-Solver:
 ```
