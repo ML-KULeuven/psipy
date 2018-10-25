@@ -12,6 +12,10 @@ import distrib;
 import integration;
 import options;
 
+auto toString(dexpr.DExpr a){
+   return a.toString();
+}
+
 auto S(string symbol){
    return symbol.dParse.simplify(one);
 }
@@ -101,6 +105,8 @@ auto integrate(string[] variables, dexpr.DExpr integrand){
 
 
 extern(C) void PydMain() {
+   def!(toString)();
+
     def!(S)();
     def!(simplify)();
 
