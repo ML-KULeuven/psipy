@@ -23,6 +23,7 @@ auto simplify(dexpr.DExpr a){
    return a.simplify(one);
 }
 
+
 auto less(dexpr.DExpr lhs, dexpr.DExpr rhs){
    return dexpr.dIvr(DIvr.Type.lZ, lhs-rhs);
 }
@@ -48,29 +49,30 @@ auto negate_condition(DIvr iv){
 
 
 auto add(dexpr.DExpr a, dexpr.DExpr b){
-   return (a+b).simplify(one);
+   return (a+b);
 }
 auto sub(dexpr.DExpr a, dexpr.DExpr b){
-   return (a-b).simplify(one);
+   return (a-b);
 }
 auto mul(dexpr.DExpr a, dexpr.DExpr b){
-   return (a*b).simplify(one);
+   return (a*b);
 }
+
 auto div(dexpr.DExpr a, dexpr.DExpr b){
-   return (a/b).simplify(one);
+   return (a/b);
 }
 auto pow(dexpr.DExpr a, dexpr.DExpr b){
-   return (a^^b).simplify(one);
+   return (a^^b);
 }
 auto exp(dexpr.DExpr a){
    dexpr.DExpr E;
    E = "e".dParse;
-   return (E^^a).simplify(one);
+   return (E^^a);
 }
 auto sig(dexpr.DExpr x){
    dexpr.DExpr E;
    E = "e".dParse;
-   return (1/(1+E^^(-x))).simplify(one);
+   return (1/(1+E^^(-x)));
 }
 
 
@@ -93,11 +95,12 @@ auto poisson_pdf(string var, dexpr.DExpr n){
 
 
 auto integrate(string[] variables, dexpr.DExpr integrand){
-   auto integral = integrand.simplify(one);
+   auto integral = integrand;
    foreach (i; 0 ..variables.length){
       integral = dInt(variables[i].dVar, integral);
+      integral = integral.simplify(one);
    }
-   return integral.simplify(one);
+   return integral;
 }
 
 
@@ -121,6 +124,7 @@ extern(C) void PydMain() {
    def!(add)();
    def!(sub)();
    def!(mul)();
+   def!(distribute_mul)();
    def!(div)();
    def!(pow)();
    def!(exp)();
