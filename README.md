@@ -27,8 +27,8 @@ python setup.py install
 ```
 python
 > import psipy
-> a = psipy.parse(3)
-> b = psipy.parse(2)
-> c = psipy.add(a,b)
+> a = psipy.S("3")
+> b = psipy.S("2")
+> c = psipy.S(a,b)
 ```
 `c` should now return `5`.
