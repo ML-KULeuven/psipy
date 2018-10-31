@@ -29,6 +29,6 @@ python
 > import psipy
 > a = psipy.S("3")
 > b = psipy.S("2")
-> c = psipy.S(a,b)
+> c = psipy.add(a,b)
 ```
 `c` should now return `5`.
