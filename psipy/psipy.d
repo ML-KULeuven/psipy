@@ -124,7 +124,6 @@ extern(C) void PydMain() {
    def!(add)();
    def!(sub)();
    def!(mul)();
-   def!(distribute_mul)();
    def!(div)();
    def!(pow)();
    def!(exp)();
