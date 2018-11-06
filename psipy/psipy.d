@@ -24,6 +24,10 @@ auto simplify(dexpr.DExpr a){
 }
 
 
+auto is_zero(dexpr.DExpr expr){
+	return text(expr)=="0";
+}
+
 auto less(dexpr.DExpr lhs, dexpr.DExpr rhs){
    return dexpr.dIvr(DIvr.Type.lZ, lhs-rhs);
 }
