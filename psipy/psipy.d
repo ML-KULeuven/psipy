@@ -41,7 +41,8 @@ auto equal(dexpr.DExpr lhs, dexpr.DExpr rhs){
 auto not_equal(dexpr.DExpr lhs, dexpr.DExpr rhs){
    return dexpr.dIvr(DIvr.Type.neqZ, rhs-lhs);
 }
-auto negate_condition(DIvr iv){
+auto negate_condition(dexpr.DExpr exp){
+   auto iv=cast(DIvr)exp;
    return dexpr.negateDIvr(iv);
 }
 
