@@ -22,6 +22,12 @@ auto simplify(dexpr.DExpr a){
    return a.simplify(one);
 }
 
+auto is_zero(dexpr.DExpr a){
+   return a==S("0");
+}
+auto is_one(dexpr.DExpr a){
+   return a==S("1");
+}
 
 auto less(dexpr.DExpr lhs, dexpr.DExpr rhs){
    return dexpr.dIvr(DIvr.Type.lZ, lhs-rhs);
@@ -163,6 +169,9 @@ extern(C) void PydMain() {
 
     def!(S)();
     def!(simplify)();
+
+    def!(is_zero)();
+    def!(is_one)();
 
    def!(less)();
    def!(less_equal)();
