@@ -127,6 +127,11 @@ auto normalInd_pdf(string[] var, dexpr.DExpr[] mu, dexpr.DExpr[] sigma){
    return result;
 }
 
+
+auto uniform_pdf(string var, dexpr.DExpr alpha, dexpr.DExpr beta){
+   auto v = dVar(var);
+   return (uniformPDF(v, alpha, beta)).simplify(one);
+}
 auto beta_pdf(string var, dexpr.DExpr alpha, dexpr.DExpr beta){
    auto v = dVar(var);
    return (betaPDF(v, alpha, beta)).simplify(one);
@@ -141,7 +146,7 @@ auto poisson_pdf(string var, dexpr.DExpr n){
 auto integrate(string[] variables, dexpr.DExpr integrand){
    auto integral = integrand;
    foreach (i; 0 ..variables.length){
-      integral = dInt(variables[i].dVar, integral);
+      integral = integrate_simple(variables[i], integral);
       /*integral = integral.simplify(one);*/
    }
 
@@ -149,8 +154,9 @@ auto integrate(string[] variables, dexpr.DExpr integrand){
 }
 
 
-
-
+auto integrate_simple(string variable, dexpr.DExpr integrand){
+   return dInt(variable.dVar, integrand);
+}
 
 
 
@@ -194,10 +200,12 @@ extern(C) void PydMain() {
    def!(delta_pdf)();
    def!(normal_pdf)();
    def!(normalInd_pdf)();
+   def!(uniform_pdf)();
    def!(beta_pdf)();
    def!(poisson_pdf)();
 
    def!(integrate)();
+   def!(integrate_simple)();
 
 
    def!(terms)();
