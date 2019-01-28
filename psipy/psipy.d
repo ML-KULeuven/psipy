@@ -28,6 +28,9 @@ auto is_zero(dexpr.DExpr a){
 auto is_one(dexpr.DExpr a){
    return a==S("1");
 }
+auto is_iverson(dexpr.DExpr a){
+   return cast(DIvr)a; 
+}
 
 auto less(dexpr.DExpr lhs, dexpr.DExpr rhs){
    return dexpr.dIvr(DIvr.Type.lZ, lhs-rhs);
