@@ -180,8 +180,9 @@ auto integrate_poly(string[] variables, dexpr.DExpr integrand){
 
 
 auto integrate_poly_simple(string variable, dexpr.DExpr integrand){
-   integrand = remove_ineq(integrand);
    auto v = variable.dVar;
+   integrand = remove_ineq(integrand);
+   writeln(integrand);
    integrand = dInt(v, integrand);
    return integrand.simplify(one);
 }
