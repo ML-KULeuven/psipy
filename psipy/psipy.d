@@ -29,7 +29,7 @@ auto is_one(dexpr.DExpr a){
    return a==S("1");
 }
 auto is_iverson(dexpr.DExpr a){
-   return cast(DIvr)a; 
+   return cast(DIvr)a;
 }
 
 auto less(dexpr.DExpr lhs, dexpr.DExpr rhs){
@@ -146,6 +146,11 @@ auto poisson_pdf(string var, dexpr.DExpr n){
 
 
 
+
+
+
+
+
 auto integrate(string[] variables, dexpr.DExpr integrand){
    auto integral = integrand;
    foreach (i; 0 ..variables.length){
@@ -161,6 +166,54 @@ auto integrate_simple(string variable, dexpr.DExpr integrand){
    return dInt(variable.dVar, integrand);
 }
 
+
+
+auto integrate_poly(string[] variables, dexpr.DExpr integrand){
+   auto integral = integrand;
+   foreach (i; 0 ..variables.length){
+      integral = integrate_poly_simple(variables[i], integral);
+      /*integral = integral.simplify(one);*/
+   }
+
+   return integral.simplify(one);
+}
+
+
+auto integrate_poly_simple(string variable, dexpr.DExpr integrand){
+   integrand = remove_ineq(integrand);
+   writeln(integrand);
+   auto v = variable.dVar;
+   return dInt(v, integrand);
+}
+
+
+dexpr.DExpr remove_ineq(dexpr.DExpr expression){
+   if(auto dsum=cast(DSum)expression){
+      auto result = S("0");
+      foreach(s;dsum.summands()){
+         result = result+remove_ineq(s);
+      }
+      return result;
+   }
+   else if(auto dmult=cast(DMult)expression){
+      auto result = S("1");
+      foreach(f;dmult.factors()){
+         result = result*remove_ineq(f);
+      }
+      return result;
+   }
+   else if(auto iv=cast(DIvr)expression){
+      if (expression.toString().canFind("≠")){
+         return S("1");
+      }
+      else{
+         return expression;
+      }
+   }
+   else{
+      return expression;
+   }
+}
 
 
 
@@ -209,6 +262,7 @@ extern(C) void PydMain() {
 
    def!(integrate)();
    def!(integrate_simple)();
+   def!(integrate_poly)();
 
 
    def!(terms)();
