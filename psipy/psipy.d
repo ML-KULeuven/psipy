@@ -175,15 +175,15 @@ auto integrate_poly(string[] variables, dexpr.DExpr integrand){
       /*integral = integral.simplify(one);*/
    }
 
-   return integral.simplify(one);
+   return integral;
 }
 
 
 auto integrate_poly_simple(string variable, dexpr.DExpr integrand){
    integrand = remove_ineq(integrand);
-   writeln(integrand);
    auto v = variable.dVar;
-   return dInt(v, integrand);
+   integrand = dInt(v, integrand);
+   return integrand.simplify(one);
 }
 
 
