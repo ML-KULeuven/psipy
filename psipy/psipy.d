@@ -114,6 +114,10 @@ auto sig(dexpr.DExpr x){
 }
 
 
+auto real_symbol(string var){
+   return S(var);
+}
+
 auto delta_pdf(string var, dexpr.DExpr root){
    auto v = dVar(var);
    return dDelta(v-root).simplify(one);
@@ -171,47 +175,52 @@ auto integrate_simple(string variable, dexpr.DExpr integrand){
 auto integrate_poly(string[] variables, dexpr.DExpr integrand){
    auto integral = integrand;
    foreach (i; 0 ..variables.length){
+      writeln(variables[i]);
       integral = integrate_poly_simple(variables[i], integral);
-      integral = integral.simplify(one);
+      /*integral = integral.simplify(one);*/
+      writeln("");
    }
 
-   return integral;
+   return integral.simplify(one);
 }
 
 
 auto integrate_poly_simple(string variable, dexpr.DExpr integrand){
    auto v = variable.dVar;
-   /*integrand = remove_ineq(integrand);*/
-   auto polytope_integrals = build_polytop_integrals(integrand,v);
-   auto result  = zero;
+   integrand = make_closed_bounds(integrand);
+   /*auto polytope_integrals = build_polytop_integrals(integrand,v);*/
+   /*auto result  = zero;
    foreach(pi;polytope_integrals){
+      writeln(pi[0]);
+      writeln(pi[1]);
       result = result + dInt(v,pi[1]);
-   }
-   /*writeln(integrand);*/
-   /*integrand = dInt(v, integrand);*/
-   /*return integrand.simplify(one);*/
+   }*/
+   auto result = dInt(v, integrand);
    return result;
 }
 
 
-/*dexpr.DExpr remove_ineq(dexpr.DExpr expression){
-   if(auto dsum=cast(DSum)expression){
+dexpr.DExpr make_closed_bounds(dexpr.DExpr expression){
+   if(auto dsum=cast(DPlus)expression){
       auto result = S("0");
       foreach(s;dsum.summands()){
-         result = result+remove_ineq(s);
+         result = result+make_closed_bounds(s);
       }
       return result;
    }
    else if(auto dmult=cast(DMult)expression){
       auto result = S("1");
       foreach(f;dmult.factors()){
-         result = result*remove_ineq(f);
+         result = result*make_closed_bounds(f);
       }
       return result;
    }
    else if(auto iv=cast(DIvr)expression){
       if (expression.toString().canFind("≠")){
          return S("1");
+      }
+      else if (expression.toString().canFind("=")){
+         return S("0");
       }
       else{
          return expression;
@@ -220,8 +229,9 @@ auto integrate_poly_simple(string variable, dexpr.DExpr integrand){
    else{
       return expression;
    }
-}*/
+}
 
+/*there are bugs in this function*/
 dexpr.DExpr[][] build_polytop_integrals(dexpr.DExpr expression, DVar v){
    dexpr.DExpr[][] result;
 
@@ -237,7 +247,7 @@ dexpr.DExpr[][] build_polytop_integrals(dexpr.DExpr expression, DVar v){
          return result ~= [S("1"),iv];
       }
    }
-   else if(auto dsum=cast(DSum)expression){
+   else if(auto dsum=cast(DPlus)expression){
       foreach(s;dsum.summands()){
          if (result.length==0){
             result ~= build_polytop_integrals(s,v);
@@ -276,10 +286,10 @@ dexpr.DExpr[][] build_polytop_integrals(dexpr.DExpr expression, DVar v){
                   auto bounds = (t1[0]*t2[0]).simplify(one);
                   auto bounds_as_key = bounds.toString();
                   if (bounds_as_key in help_result){
-                     help_result[bounds_as_key] =  help_result[bounds_as_key]+t1[1]*t2[1];
+                     help_result[bounds_as_key] =  (help_result[bounds_as_key]+t1[1]*t2[1]).simplify(one);
                   }
                   else{
-                     help_result[bounds_as_key] = t1[1]*t2[1];
+                     help_result[bounds_as_key] = (t1[1]*t2[1]).simplify(one);
                      help_bounds[bounds_as_key] = bounds;
                   }
                }
@@ -428,6 +438,8 @@ extern(C) void PydMain() {
    def!(pow)();
    def!(exp)();
    def!(sig)();
+
+   def!(real_symbol)();
 
    def!(delta_pdf)();
    def!(normal_pdf)();
