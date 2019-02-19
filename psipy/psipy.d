@@ -172,7 +172,7 @@ auto integrate_poly(string[] variables, dexpr.DExpr integrand){
    auto integral = integrand;
    foreach (i; 0 ..variables.length){
       integral = integrate_poly_simple(variables[i], integral);
-      /*integral = integral.simplify(one);*/
+      integral = integral.simplify(one);
    }
 
    return integral;
@@ -181,14 +181,20 @@ auto integrate_poly(string[] variables, dexpr.DExpr integrand){
 
 auto integrate_poly_simple(string variable, dexpr.DExpr integrand){
    auto v = variable.dVar;
-   integrand = remove_ineq(integrand);
-   writeln(integrand);
-   integrand = dInt(v, integrand);
-   return integrand.simplify(one);
+   /*integrand = remove_ineq(integrand);*/
+   auto polytope_integrals = build_polytop_integrals(integrand,v);
+   auto result  = zero;
+   foreach(pi;polytope_integrals){
+      result = result + dInt(v,pi[1]);
+   }
+   /*writeln(integrand);*/
+   /*integrand = dInt(v, integrand);*/
+   /*return integrand.simplify(one);*/
+   return result;
 }
 
 
-dexpr.DExpr remove_ineq(dexpr.DExpr expression){
+/*dexpr.DExpr remove_ineq(dexpr.DExpr expression){
    if(auto dsum=cast(DSum)expression){
       auto result = S("0");
       foreach(s;dsum.summands()){
@@ -214,7 +220,176 @@ dexpr.DExpr remove_ineq(dexpr.DExpr expression){
    else{
       return expression;
    }
+}*/
+
+dexpr.DExpr[][] build_polytop_integrals(dexpr.DExpr expression, DVar v){
+   dexpr.DExpr[][] result;
+
+   if(auto iv=cast(DIvr)expression){
+      if (iv.toString().canFind("≠")){
+         result ~= [S("1"),S("1")];
+         return result;
+      }
+      else if (iv.hasFreeVar(v)){
+         return result ~= [iv,iv];
+      }
+      else {
+         return result ~= [S("1"),iv];
+      }
+   }
+   else if(auto dsum=cast(DSum)expression){
+      foreach(s;dsum.summands()){
+         if (result.length==0){
+            result ~= build_polytop_integrals(s,v);
+         }
+         else{
+            auto r = build_polytop_integrals(s,v);
+            foreach(t1;r){
+               for (int i = 0; i < result.length; i++){
+                  if(t1[0]==result[i][0]){
+                     result[i] = [result[i][0], result[i][1]+t1[1]];
+                     break;
+                  }
+                  else if(i==result.length-1){
+                     result ~= t1;
+                     break;
+                  }
+               }
+            }
+         }
+      }
+      return result;
+   }
+   else if(auto dmult=cast(DMult)expression){
+      dexpr.DExpr[string] help_result;
+      dexpr.DExpr[string] help_bounds;
+
+      foreach(f;dmult.factors()){
+         if (result.length==0){
+            result ~= build_polytop_integrals(f,v);
+         }
+         else{
+            auto r = build_polytop_integrals(f,v);
+            help_result = null;
+            foreach(t1;r){
+               foreach(t2;result){
+                  auto bounds = (t1[0]*t2[0]).simplify(one);
+                  auto bounds_as_key = bounds.toString();
+                  if (bounds_as_key in help_result){
+                     help_result[bounds_as_key] =  help_result[bounds_as_key]+t1[1]*t2[1];
+                  }
+                  else{
+                     help_result[bounds_as_key] = t1[1]*t2[1];
+                     help_bounds[bounds_as_key] = bounds;
+                  }
+               }
+
+               result = null;
+               foreach(k;help_result.byKey){
+                  result ~= [help_bounds[k],help_result[k]];
+               }
+            }
+         }
+      }
+      return result;
+   }
+   else{
+      return result ~= [S("1"), expression];
+   }
+
+
 }
+
+
+
+/*dexpr.DExpr[][] build_polytop_integrals(dexpr.DExpr expression, DVar v){
+   dexpr.DExpr[string] result;
+
+   if(auto iv=cast(DIvr)expression){
+      if (iv.toString().canFind("≠")){
+         result[one.toString()] = S("1");
+         return result;
+      }
+      else if (iv.hasFreeVar(v)){
+         iv = iv.simplify(one);
+         return result[iv.toString()] = iv;
+      }
+      else {
+         iv = iv.simplify(one);
+         return result[one.toString()] = iv;
+      }
+   }
+   else if(auto dmult=cast(DMult)expression){
+      dexpr.DExpr[string] help_result;
+      dexpr.DExpr[string] result;
+
+      foreach(f;dmult.factors()){
+         if (result.length==0){
+            result = build_polytop_integrals(f,v);
+         }
+         else{
+            auto r = build_polytop_integrals(f,v);
+            help_result = [][];
+            foreach(t1;result.byKey){
+               foreach(t2;r.byKey){
+                  auto bounds = (result[0]*t2[0]).simplify(one);
+                  auto bounds_as_key = bounds.toString();
+
+                  if (bounds_as_key in help_result){
+                     help_result[bounds_as_key] = t1[1]*t2[1]]
+
+                  }
+                  else{
+                     result[t1] = r[t1];
+                  }
+
+                     help_result ~= [(t1[0]*t2[0]).simplify(one), t1[1]*t2[1]];
+               }
+            }
+            result[][] = help_result;
+            /*result = [][];*/
+            /*for (int i = 0; i < help_result.length; i++){
+               bounds_as_key = help_result[]
+
+               exp2index[result[i][0].toString()] = i;
+            }*/
+            /*TODO simplify result*/
+         /*}
+      }
+      return result;
+   }*/
+
+
+   /*else if(auto dsum=cast(DSum)expression){
+      foreach(s;dsum.summands()){
+         if (result.length==0){
+            result ~= build_polytop_integrals(s,v);
+         }
+         else{
+            auto r = build_polytop_integrals(s,v);
+            foreach(t1;r){
+               for (int i = 0; i < result.length; i++){
+                  if(t1[0]==result[i][0]){
+                     result[i] = [result[i][0], result[i][1]+t1[1]];
+                     break;
+                  }
+                  else if(i==result.length-1){
+                     result ~= t1;
+                     break;
+                  }
+               }
+            }
+         }
+      }
+      return result;
+   }*/
+
+   /*else{
+      return result ~= [S("1"), expression];
+   }
+
+
+}*/
 
 
 
