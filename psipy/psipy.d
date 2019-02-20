@@ -175,10 +175,10 @@ auto integrate_simple(string variable, dexpr.DExpr integrand){
 auto integrate_poly(string[] variables, dexpr.DExpr integrand){
    auto integral = integrand;
    foreach (i; 0 ..variables.length){
-      writeln(variables[i]);
+      /*writeln(variables[i]);*/
       integral = integrate_poly_simple(variables[i], integral);
       /*integral = integral.simplify(one);*/
-      writeln("");
+      /*writeln("");*/
    }
 
    return integral.simplify(one);
