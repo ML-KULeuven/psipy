@@ -546,6 +546,7 @@ extern(C) void PydMain() {
    def!(integrate)();
    def!(integrate_simple)();
    def!(integrate_poly)();
+   def!(filter_iverson)();
 
 
    def!(terms)();
