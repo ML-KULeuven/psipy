@@ -505,6 +505,7 @@ extern(C) void PydMain() {
 
     def!(is_zero)();
     def!(is_one)();
+    def!(is_iverson)();
 
    def!(less)();
    def!(less_equal)();
