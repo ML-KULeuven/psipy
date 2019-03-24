@@ -29,7 +29,8 @@ auto is_one(dexpr.DExpr a){
    return a==S("1");
 }
 auto is_iverson(dexpr.DExpr a){
-   return cast(DIvr)a;
+   if (auto dummy = cast(DIvr)a) return 1;
+   else return 0;
 }
 
 auto less(dexpr.DExpr lhs, dexpr.DExpr rhs){
