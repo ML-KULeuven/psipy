@@ -11,16 +11,87 @@ import dexpr;
 import distrib;
 import integration;
 
-auto toString(dexpr.DExpr a){
-   return a.toString();
-}
+
+
 
 auto S(string symbol){
-   return symbol.dParse.simplify(one);
+   return new PsiExpr(symbol.dParse.simplify(one));
 }
-auto simplify(dexpr.DExpr a){
-   return a.simplify(one);
+auto S(int number){
+   return new PsiExpr(to!string(number).dParse.simplify(one));
 }
+auto S(float number){
+   return new PsiExpr(to!string(number).dParse.simplify(one));
+}
+auto S(double number){
+   return new PsiExpr(to!string(number).dParse.simplify(one));
+}
+
+class PsiExpr{
+   dexpr.DExpr _expression;
+   this(dexpr.DExpr expression){
+      _expression = expression;
+   }
+
+   auto simplify(){
+      return  new PsiExpr(_expression.simplify(one));
+   }
+
+   auto opBinary(string op)(PsiExpr rhs) if(op == "+"){
+      return new PsiExpr(_expression + rhs._expression);
+   }
+   auto opBinary(string op)(PsiExpr rhs) if(op == "-"){
+      return new PsiExpr(_expression - rhs._expression);
+   }
+   auto opBinary(string op)(PsiExpr rhs) if(op == "*"){
+      return new PsiExpr(_expression * rhs._expression);
+   }
+   auto nb_divide(){
+      return true;
+   }
+   auto opBinary(string op)(PsiExpr rhs) if(op == "/"){
+      return new PsiExpr(_expression / rhs._expression);
+   }
+   auto opBinary(string op)(PsiExpr rhs) if(op == "^^"){
+      return new PsiExpr(_expression ^^ rhs._expression);
+   }
+
+   override string toString(){
+      return _expression.toString();
+   }
+
+
+}
+
+
+
+
+extern(C) void PydMain() {
+   def!(S)();
+
+   module_init();
+   wrap_class!(
+      PsiExpr,
+      Init!(dexpr.DExpr),
+
+      Def!(PsiExpr.simplify),
+
+      OpBinary!("+"),
+      OpBinary!("-"),
+      OpBinary!("*"),
+      Property!(PsiExpr.nb_divide),
+      /* OpBinary!("/"), */
+      OpBinary!("^^"),
+
+
+      Repr!(PsiExpr.toString),
+   )();
+}
+
+
+
+
+/*
 
 auto is_zero(dexpr.DExpr a){
    return a==S("0");
@@ -54,11 +125,11 @@ auto not_equal(dexpr.DExpr lhs, dexpr.DExpr rhs){
 auto negate_condition(dexpr.DExpr exp){
    auto iv=cast(DIvr)exp;
    return dexpr.negateDIvr(iv);
-}
+} */
 
 
 
-auto add(dexpr.DExpr a, dexpr.DExpr b){
+/* auto add(dexpr.DExpr a, dexpr.DExpr b){
    return (a+b);
 }
 auto sub(dexpr.DExpr a, dexpr.DExpr b){
@@ -66,38 +137,11 @@ auto sub(dexpr.DExpr a, dexpr.DExpr b){
 }
 auto mul(dexpr.DExpr a, dexpr.DExpr b){
    return (a*b);
-}
-
-auto distribute_mul(DExpr sum1, DExpr sum2){
-   dexpr.DExpr result = "0".dParse;
-   auto s1=cast(DPlus)sum1;
-   auto s2=cast(DPlus)sum2;
-   if (s1 && s2){
-      foreach(t1;s1.summands){
-         foreach(t2;s2.summands){
-            result = result + (t1*t2).simplify(one);
-         }
-      }
-   }
-   else if (s1){
-      foreach(t1;s1.summands){
-         result = result + (t1*sum2).simplify(one);
-      }
-   }
-   else if (s2){
-      foreach(t2;s2.summands){
-         result = result + (t2*sum1).simplify(one);
-      }
-   }
-   else{
-      result = sum1*sum2;
-   }
-   return result;
-}
+} */
 
 
 
-auto div(dexpr.DExpr a, dexpr.DExpr b){
+/* auto div(dexpr.DExpr a, dexpr.DExpr b){
    return (a/b);
 }
 auto pow(dexpr.DExpr a, dexpr.DExpr b){
@@ -112,9 +156,9 @@ auto sig(dexpr.DExpr x){
    dexpr.DExpr E;
    E = "e".dParse;
    return (1/(1+E^^(-x)));
-}
+} */
 
-
+/*
 auto real_symbol(string var){
    return S(var);
 }
@@ -147,7 +191,7 @@ auto beta_pdf(string var, dexpr.DExpr alpha, dexpr.DExpr beta){
 auto poisson_pdf(string var, dexpr.DExpr n){
    auto v = dVar(var);
    return (poissonPDF(v, n)).simplify(one);
-}
+} */
 
 
 
@@ -156,19 +200,16 @@ auto poisson_pdf(string var, dexpr.DExpr n){
 
 
 
-auto integrate(string[] variables, dexpr.DExpr integrand){
+/* auto integrate(string[] variables, dexpr.DExpr integrand){
    auto integral = integrand;
    foreach (i; 0 ..variables.length){
       integral = integrate_simple(variables[i], integral);
-      /*integral = integral.simplify(one);*/
    }
    return integral.simplify(one);
-
-   /*return integral.simplify(one);*/
-}
+} */
 
 
-auto integrate_simple(string variable, dexpr.DExpr integrand){
+/* auto integrate_simple(string variable, dexpr.DExpr integrand){
    return dInt(variable.dVar, integrand);
 }
 
@@ -178,7 +219,6 @@ auto integrate_poly(string[] variables, dexpr.DExpr integrand){
    auto integral = integrand;
    foreach (i; 0 ..variables.length){
       integral = integrate_poly_simple1(variables[i], integral);
-      /*integral = integral.simplify(one);*/
    }
    integral = integral.simplify(one);
    return integral;
@@ -190,11 +230,11 @@ auto integrate_poly_simple1(string variable, dexpr.DExpr integrand){
    integrand = make_closed_bounds(integrand);
    auto result = dInt(v, integrand);
    return result;
-}
+} */
 
 
 
-
+/*
 
 dexpr.DExpr make_closed_bounds(dexpr.DExpr expression){
    if(auto dsum=cast(DPlus)expression){
@@ -225,10 +265,10 @@ dexpr.DExpr make_closed_bounds(dexpr.DExpr expression){
    else{
       return expression;
    }
-}
+} */
 
 
-auto filter_iverson(dexpr.DExpr expression){
+/* auto filter_iverson(dexpr.DExpr expression){
    if(isPolynomial(expression)){
       return expression;
    }
@@ -252,7 +292,7 @@ auto filter_iverson(dexpr.DExpr expression){
    else{
       return expression;
    }
-}
+} */
 
 /+
 DExpr[3] splitCommonFactors(DExpr e1,DExpr e2){
@@ -348,34 +388,6 @@ dexpr.DExpr[][] build_polytop_integrals(dexpr.DExpr expression, DVar v){
 
 
 
-auto integrate_poly_simple3(string variable, dexpr.DExpr integrand){
-   auto v = variable.dVar;
-   auto polytope_integrals = build_polytop_integrals2(integrand,v);
-   auto result  = zero;
-   /*writeln("");
-   writeln(polytope_integrals.length);
-   writeln(v);*/
-   foreach(pi;polytope_integrals){
-      /*writeln(pi[0]);
-      writeln(pi[1]);*/
-      /*result = (result + make_closed_bounds(dInt(v,pi[0]*pi[1])).simplify(one)*pi[2]).simplify(one);*/
-      auto inter_result = make_closed_bounds(dInt(v,pi[0]*pi[1]).simplify(one));
-      inter_result = (inter_result*pi[2]).simplify(one);
-      auto common = splitCommonFactors(result,inter_result);
-
-      /*writeln("commmon");
-      writeln(common[0]);
-      writeln(common[1]);
-      writeln(common[2]);*/
-
-      result = common[0]*(common[1]+common[2]);
-
-   }
-   /*result = make_closed_bounds(result);*/
-   /*writeln(result);*/
-   writeln(v);
-   return result;
-}
 
 dexpr.DExpr[][] build_polytop_integrals2(dexpr.DExpr expression, DVar v){
    dexpr.DExpr[][] result;
@@ -489,15 +501,15 @@ dexpr.DExpr[][] build_polytop_integrals2(dexpr.DExpr expression, DVar v){
 
 
 
-auto terms(dexpr.DExpr expression){
+/* auto terms(dexpr.DExpr expression){
    dexpr.DExpr[] result;
    foreach(s;expression.summands){
       result ~= s;
    }
    return result;
-}
+} */
 
-
+/*
 extern(C) void PydMain() {
    def!(toString)();
 
@@ -549,4 +561,4 @@ extern(C) void PydMain() {
       DExpr,
       Repr!(DExpr.toString)
    )();
-}
+} */
