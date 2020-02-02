@@ -46,9 +46,6 @@ class PsiExpr{
    auto opBinary(string op)(PsiExpr rhs) if(op == "*"){
       return new PsiExpr(_expression * rhs._expression);
    }
-   auto nb_divide(){
-      return true;
-   }
    auto opBinary(string op)(PsiExpr rhs) if(op == "/"){
       return new PsiExpr(_expression / rhs._expression);
    }
@@ -65,7 +62,6 @@ class PsiExpr{
 
 
 
-
 extern(C) void PydMain() {
    def!(S)();
 
@@ -79,8 +75,7 @@ extern(C) void PydMain() {
       OpBinary!("+"),
       OpBinary!("-"),
       OpBinary!("*"),
-      Property!(PsiExpr.nb_divide),
-      /* OpBinary!("/"), */
+      OpBinary!("/"),
       OpBinary!("^^"),
 
 
