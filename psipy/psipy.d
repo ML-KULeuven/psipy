@@ -1,5 +1,6 @@
 import std.conv;
 import std.algorithm;
+import std.format;
 
 import options, hashtable, dutil;
 
@@ -33,6 +34,28 @@ class PsiExpr{
       _expression = expression;
    }
 
+
+   override string toString(){
+      return _expression.toString();
+   }
+
+
+   auto is_polynomial(){
+      return isPolynomial(_expression);
+   }
+
+   auto is_zero(){
+      return _expression==zero;
+   }
+   auto is_one(){
+      return _expression==one;
+   }
+   auto is_iverson(){
+      if (auto dummy = cast(DIvr)_expression) return 1;
+      else return 0;
+   }
+
+
    auto simplify(){
       return  new PsiExpr(_expression.simplify(one));
    }
@@ -53,12 +76,136 @@ class PsiExpr{
       return new PsiExpr(_expression ^^ rhs._expression);
    }
 
+
+   auto eq(PsiExpr rhs){
+      return new PsiExpr(dexpr.dIvr(DIvr.Type.eqZ, rhs._expression-_expression).simplify(one));
+   }
+   auto ne(PsiExpr rhs){
+      return new PsiExpr(dexpr.dIvr(DIvr.Type.neqZ, rhs._expression-_expression).simplify(one));
+   }
+
+
+   auto lt(PsiExpr rhs) {
+      return new PsiExpr(dexpr.dIvr(DIvr.Type.lZ, _expression-rhs._expression).simplify(one));
+   }
+
+   auto le(PsiExpr rhs){
+      return new PsiExpr(dexpr.dIvr(DIvr.Type.leZ, _expression-rhs._expression).simplify(one));
+   }
+
+   auto gt(PsiExpr rhs){
+      return new PsiExpr(dexpr.dIvr(DIvr.Type.lZ, rhs._expression-_expression).simplify(one));
+   }
+
+   auto ge(PsiExpr rhs){
+      return new PsiExpr(dexpr.dIvr(DIvr.Type.leZ, rhs._expression-_expression).simplify(one));
+   }
+
+
+   auto negate(){
+      if (auto iv = cast(DIvr)_expression) {
+         return new PsiExpr(dexpr.negateDIvr(iv));
+      }
+      else{
+         auto s = format!"You can only negate Iverson brackets, %s is not a (pure) Iverson bracket"(_expression);
+         throw new TypeError(s);
+      }
+   }
+
+
+   auto filter_open_iverson(){
+      auto result = _filter_open_iverson(_expression);
+      return new PsiExpr(result);
+   }
+
+   dexpr.DExpr _filter_open_iverson(dexpr.DExpr expression){
+      if(auto dsum=cast(DPlus)expression){
+         auto result = zero;
+         foreach(s;dsum.summands()){
+            result = result+_filter_open_iverson(s);
+         }
+         return result;
+      }
+      else if(auto dmult=cast(DMult)expression){
+         auto result = one;
+         foreach(f;dmult.factors()){
+            result = result*_filter_open_iverson(f);
+         }
+         return result;
+      }
+      else if(auto iv=cast(DIvr)expression){
+         if (iv.type==DIvr.Type.neqZ){
+            return one;
+         }
+         if (iv.type==DIvr.Type.eqZ){
+            return zero;
+         }
+         else{
+            return expression;
+         }
+      }
+      else{
+         return expression;
+      }
+   }
+
+}
+
+
+
+
+
+class TypeError : Exception
+{
+    this(string msg, string file = __FILE__, size_t line = __LINE__) {
+        super(msg, file, line);
+    }
+}
+
+class PsiPolynomial{
+   PsiExpr _polynomial;
+   this(PsiExpr expression,bool unsafe_init=false){
+      if (unsafe_init) {
+         _polynomial = expression;
+      }
+      else if (expression.is_polynomial) {
+         _polynomial = expression;
+      }
+      else{
+         auto s = format!"You're intialization expression (%s) is not a polynomial"(expression);
+         throw new TypeError(s);
+      }
+   }
+
+   auto simplify(){
+      auto expression = _polynomial.simplify();
+      return  new PsiPolynomial(expression , true);
+   }
+
+   auto to_PsiExpr(){
+      return new PsiExpr(_polynomial._expression);
+   }
+
+
+   auto opBinary(string op)(PsiPolynomial rhs) if(op == "+"){
+      return new PsiPolynomial(_polynomial + rhs._polynomial);
+   }
+   auto opBinary(string op)(PsiPolynomial rhs) if(op == "-"){
+      return new PsiPolynomial(_polynomial - rhs._polynomial);
+   }
+   auto opBinary(string op)(PsiPolynomial rhs) if(op == "*"){
+      return new PsiPolynomial(_polynomial * rhs._polynomial);
+   }
+
+
    override string toString(){
-      return _expression.toString();
+      return _polynomial.toString();
    }
 
 
 }
+
+
 
 
 
@@ -70,6 +217,12 @@ extern(C) void PydMain() {
       PsiExpr,
       Init!(dexpr.DExpr),
 
+      Repr!(PsiExpr.toString),
+
+      Property!(PsiExpr.is_zero),
+      Property!(PsiExpr.is_one),
+      Property!(PsiExpr.is_iverson),
+
       Def!(PsiExpr.simplify),
 
       OpBinary!("+"),
@@ -78,115 +231,74 @@ extern(C) void PydMain() {
       OpBinary!("/"),
       OpBinary!("^^"),
 
+      Def!(PsiExpr.eq),
+      Def!(PsiExpr.ne),
 
-      Repr!(PsiExpr.toString),
+      Def!(PsiExpr.lt),
+      Def!(PsiExpr.le),
+      Def!(PsiExpr.gt),
+      Def!(PsiExpr.ge),
+
+      Def!(PsiExpr.negate),
+
+      Def!(PsiExpr.filter_open_iverson),
+
    )();
+
+
+   wrap_class!(
+      PsiPolynomial,
+      Init!(PsiExpr,bool),
+
+      Def!(PsiPolynomial.simplify),
+      Def!(PsiPolynomial.to_PsiExpr),
+
+      OpBinary!("+"),
+      OpBinary!("-"),
+      OpBinary!("*"),
+
+      Repr!(PsiPolynomial.toString),
+
+   )();
+
 }
 
 
 
-
-/*
-
-auto is_zero(dexpr.DExpr a){
-   return a==S("0");
-}
-auto is_one(dexpr.DExpr a){
-   return a==S("1");
-}
-auto is_iverson(dexpr.DExpr a){
-   if (auto dummy = cast(DIvr)a) return 1;
-   else return 0;
-}
-
-auto less(dexpr.DExpr lhs, dexpr.DExpr rhs){
-   return dexpr.dIvr(DIvr.Type.lZ, lhs-rhs);
-}
-auto less_equal(dexpr.DExpr lhs, dexpr.DExpr rhs){
-   return dexpr.dIvr(DIvr.Type.leZ, lhs-rhs);
-}
-auto greater(dexpr.DExpr lhs, dexpr.DExpr rhs){
-   return dexpr.dIvr(DIvr.Type.lZ, rhs-lhs);
-}
-auto greater_equal(dexpr.DExpr lhs, dexpr.DExpr rhs){
-   return dexpr.dIvr(DIvr.Type.leZ, rhs-lhs);
-}
-auto equal(dexpr.DExpr lhs, dexpr.DExpr rhs){
-   return dexpr.dIvr(DIvr.Type.eqZ, rhs-lhs);
-}
-auto not_equal(dexpr.DExpr lhs, dexpr.DExpr rhs){
-   return dexpr.dIvr(DIvr.Type.neqZ, rhs-lhs);
-}
-auto negate_condition(dexpr.DExpr exp){
-   auto iv=cast(DIvr)exp;
-   return dexpr.negateDIvr(iv);
-} */
+/* extern(C) void PydMain() {
 
 
 
-/* auto add(dexpr.DExpr a, dexpr.DExpr b){
-   return (a+b);
-}
-auto sub(dexpr.DExpr a, dexpr.DExpr b){
-   return (a-b);
-}
-auto mul(dexpr.DExpr a, dexpr.DExpr b){
-   return (a*b);
-} */
+
+
+   def!(integrate)();
+   def!(integrate_simple)();
+   def!(integrate_poly)();
+   def!(filter_iverson)();
+
+
+   def!(terms)();
+
+
+   module_init();
+   wrap_class!(
+      DExpr,
+      Repr!(DExpr.toString)
+   )(); */
 
 
 
-/* auto div(dexpr.DExpr a, dexpr.DExpr b){
-   return (a/b);
-}
-auto pow(dexpr.DExpr a, dexpr.DExpr b){
-   return (a^^b);
-}
-auto exp(dexpr.DExpr a){
-   dexpr.DExpr E;
-   E = "e".dParse;
-   return (E^^a);
-}
-auto sig(dexpr.DExpr x){
-   dexpr.DExpr E;
-   E = "e".dParse;
-   return (1/(1+E^^(-x)));
-} */
-
-/*
-auto real_symbol(string var){
-   return S(var);
-}
-
-auto delta_pdf(string var, dexpr.DExpr root){
-   auto v = dVar(var);
-   return dDelta(v-root).simplify(one);
-}
-auto normal_pdf(string var, dexpr.DExpr mu, dexpr.DExpr sigma){
-   auto v = dVar(var);
-   return (gaussPDF(v, mu, sigma)).simplify(one);
-}
-auto normalInd_pdf(string[] var, dexpr.DExpr[] mu, dexpr.DExpr[] sigma){
-   auto result =  S("1");
-   for (int i = 0; i < var.length; i++){
-      result =  result*gaussPDF(dVar(var[i]), mu[i], sigma[i]);
-   }
-   return result;
-}
 
 
-auto uniform_pdf(string var, dexpr.DExpr alpha, dexpr.DExpr beta){
-   auto v = dVar(var);
-   return (uniformPDF(v, alpha, beta)).simplify(one);
-}
-auto beta_pdf(string var, dexpr.DExpr alpha, dexpr.DExpr beta){
-   auto v = dVar(var);
-   return (betaPDF(v, alpha, beta)).simplify(one);
-}
-auto poisson_pdf(string var, dexpr.DExpr n){
-   auto v = dVar(var);
-   return (poissonPDF(v, n)).simplify(one);
-} */
+
+
+
+
+
+
+
+
+
 
 
 
