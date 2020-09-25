@@ -43,6 +43,10 @@ auto S(double number){
    return new PsiExpr(to!string(number).dParse.simplify(one));
 }
 
+auto toSympyString(Polynomial p){
+   return p._polynomial._expression.toString(Format.sympy);
+}
+
 
 class EvalBoundsCache{
    static MapX!(Q!(DExpr,long),DExpr) _cache;
@@ -238,7 +242,16 @@ class Polynomial{
       return result;
    }
 
-   auto integrate(PsiExpr variable, PsiExpr lb, PsiExpr ub, EvalBoundsCache register){
+   /* auto integrate(PsiExpr variable, PsiExpr lb, PsiExpr ub, EvalBoundsCache register){
+      return _integrate(variable, lb, ub, register);
+   } */
+
+   auto integrate(Polynomial variable, Polynomial lb, Polynomial ub, EvalBoundsCache register){
+      return _integrate(variable._polynomial, lb._polynomial, ub._polynomial, register);
+   }
+
+
+   auto _integrate(PsiExpr variable, PsiExpr lb, PsiExpr ub, EvalBoundsCache register){
       auto v = variable._expression.toString().dVar;
 
       auto poly = _polynomial._expression.asPolynomialIn(v);
@@ -438,6 +451,9 @@ auto _factors(dexpr.DExpr expression){
 
 extern(C) void PydMain() {
    def!(S)();
+
+   def!(toSympyString)();
+
 
    module_init();
 
