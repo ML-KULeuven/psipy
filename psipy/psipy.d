@@ -242,6 +242,15 @@ class Polynomial{
       return result;
    }
 
+   auto get_terms(){
+      auto terms = _terms(_polynomial._expression);
+      Polynomial[] result;
+      foreach(t;terms){
+         result ~= new Polynomial(new PsiExpr(t));
+      }
+      return result;
+   }
+
    /* auto integrate(PsiExpr variable, PsiExpr lb, PsiExpr ub, EvalBoundsCache register){
       return _integrate(variable, lb, ub, register);
    } */
@@ -515,6 +524,7 @@ extern(C) void PydMain() {
 
 
       Def!(Polynomial.factorize_list),
+      Def!(Polynomial.get_terms),
 
 
       Def!(Polynomial.integrate),
