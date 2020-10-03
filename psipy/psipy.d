@@ -289,7 +289,7 @@ class Polynomial{
 		}
 		auto result =  dPlus(s);
 
-      return new Polynomial(new PsiExpr(result), true);
+      return new Polynomial(new PsiExpr(result.simplify(one)), true);
    }
 
 
