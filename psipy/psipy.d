@@ -2,6 +2,7 @@ import std.conv;
 import std.algorithm;
 import std.format;
 import std.parallelism;
+import std.bigint;
 
 import options, hashtable, dutil;
 
@@ -209,6 +210,14 @@ class Polynomial{
 
    auto to_PsiExpr(){
       return new PsiExpr(_polynomial._expression);
+   }
+
+   auto to_float(){
+      auto q = cast(Dℚ)_polynomial._expression;
+      return toReal(q.c);
+      /* auto num = q.c.num.toLong();
+      auto den = q.c.den.toLong();
+      return num.to!real()/den.to!real(); */
    }
 
    auto variables(){
@@ -516,6 +525,8 @@ extern(C) void PydMain() {
       Repr!(Polynomial.toString),
 
       Def!(Polynomial.simplify),
+      Def!(Polynomial.to_float),
+
       Def!(Polynomial.to_PsiExpr),
 
       OpBinary!("+"),
